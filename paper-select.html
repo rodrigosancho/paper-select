@@ -1,0 +1,373 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-menu/paper-menu.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-dropdown/iron-dropdown.html">
+<link rel="import" href="../app-localize-behavior/app-localize-behavior.html">
+
+
+<!--
+
+`paper-select` is a dropdown specially design with multi select purpose. It's created on top of several
+paper-elements in order to look like `paper-dropdown-menu`.
+This element include an `options` attribute which accepts a String Array or an Object Array.
+
+    <paper-select options="{{ myOptionsStringArray }}"></paper-select>
+
+With an Object options Array, you must specify which is the `value` attribute and which is the `label` one.
+Those attributes are `option-value-attr` and `option-label-attr`. `value` will be used to submit the element in a form.
+
+    <paper-select options="{{ myOptionsObjectArray }}"
+                        option-label-attr="name"
+                        option-value-attr="id"></paper-select>
+
+Use the HTML attribute `multi` to have a multiselect dropdown
+
+    <paper-select options="{{ myOptionsStringArray }}"
+                        multi></paper-select>
+
+Additionally, an attribute called `search` can be included in order to add a search bar in the options list.
+This search bar allow you to filter options by a given text.
+
+    <paper-select options="{{ myOptionsStringArray }}"
+                        multi
+                        search></paper-select>
+
+Like the `paper-dropdown-menu` element, this element implements a `label` attribute.
+
+    <paper-select options="{{ myOptionsStringArray }}"
+                        label="My dropdown"></paper-select>
+
+This element implements as main element a readonly paper-input, so it implements `Polymer.IronFormElementBehavior`
+as well.
+
+    <paper-select options="{{ myOptionsStringArray }}"
+                        label="My dropdown"
+                        error-message="My dropdown is required"
+                        required></paper-select>
+
+To initialize the element with some options, an array must passed to the `selected` attribute.
+
+    <paper-select options="{{ myOptionsStringArray }}"
+                        selected="{{ stringArrayInitialize }}"
+                        label="My dropdown"></paper-select>
+
+<b>Internaltional</b>
+
+When using the `search` attribute there are some hints an labels. In order to localize those text, a language
+could be specify, including the `language` attribute
+
+    <paper-select language="en"></paper-select>
+
+@author Rodrigo Sancho <rodrigo.sancho@hola.com>
+@demo demo/index.html
+-->
+
+<dom-module id="paper-select">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+
+
+            :host[readonly] > paper-button{
+                background-color: transparent;
+            }
+
+            :host paper-button {
+                width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+
+            :host iron-icon {
+                color: #9b9b9b;
+            }
+
+            :host paper-input {
+                width: 100%;
+            }
+
+            :host paper-item {
+                cursor: pointer;
+            }
+
+            :host .dropdown-content {
+                background-color: white;
+                line-height: 20px;
+                border-radius: 2px;
+                box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+            }
+
+            ::content .dropdown-content paper-input input, ::content .dropdown-content paper-input label {
+                padding: 0 8px !important;
+            }
+
+            ::content paper-button paper-input label {
+                cursor: pointer;
+                text-transform: none;
+            }
+
+            ::content paper-input-error{
+                text-transform: initial;
+            }
+
+            ::content #searchBar iron-icon{
+                cursor: pointer;
+                opacity: 0;
+                -webkit-transition: opacity 0.2s;
+                -moz-transition: opacity 0.2s;
+                -ms-transition: opacity 0.2s;
+                -o-transition: opacity 0.2s;
+                transition: opacity 0.2s;
+            }
+
+            ::content #searchBar:hover iron-icon{
+                opacity: 1;
+            }
+
+        </style>
+
+        <!-- DOM goes here -->
+        <!-- Button -->
+        <paper-button id="toggle"
+                      on-click="_toggleDropdown"
+                      disabled$="[[ readonly ]]">
+            <paper-input label="[[ label ]]"
+                         value="{{ value }}"
+                         readonly
+                         error-message="[[ errorMessage ]]"
+                         required$="[[ required ]]">
+                <iron-icon icon="icons:arrow-drop-down" suffix></iron-icon>
+            </paper-input>
+        </paper-button>
+        <!-- Dropdown -->
+        <iron-dropdown id="dropdown"
+                       horizontal-align="right"
+                       vertical-align="top"
+                       on-iron-overlay-closed="_resetFilter"
+                       always-on-top>
+            <div class="dropdown-content">
+                <template is="dom-if" if="{{ search }}">
+                    <paper-input id="searchBar"
+                                 label="{{ localize('Search') }}"
+                                 value="{{ filter }}">
+                        <iron-icon icon="close"
+                                   suffix
+                                   on-click="_resetFilter"></iron-icon>
+                    </paper-input>
+                </template>
+
+                <!-- Multiselect mode -->
+                <paper-menu selected-values="{{ _selected }}"
+                            selected-items="{{ selectedItems }}"
+                            on-iron-select="_onSelect"
+                            on-iron-deselect="_onSelect"
+                            items="[[ options ]]"
+                            attr-for-selected="value"
+                            multi>
+                    <template is="dom-repeat"
+                              id="options"
+                              items="[[ options ]]"
+                              as="option"
+                              filter="{{ _filterOptions(filter) }}"
+                              rendered-item-count="{{ filteredElements }}">
+                        <paper-item value="{{ _getOptionValue(option) }}" on-click="_fireClick">{{ _getOptionLabel(option) }}</paper-item>
+                    </template>
+
+                    <template is="dom-if" if="{{ !filteredElements }}">
+                        <paper-item>{{ localize('Nothing found') }}</paper-item>
+                    </template>
+                </paper-menu>
+            </div>
+        </iron-dropdown>
+        <template is="dom-repeat" items="{{ _selected }}">
+            <input type="hidden" name$="[[ name ]]" value$="{{ item }}">
+        </template>
+
+    </template>
+    <script>
+        Polymer({
+
+            is: 'paper-select',
+
+            properties: {
+                /** Element language */
+                language: {
+                    value: 'es'
+                },
+                /** Element translations */
+                resources: {
+                    value: function () {
+                        return {
+                            'en': {'Search': 'Search', 'Nothing found': 'Nothing found'},
+                            'es': {'Search': 'Buscar', 'Nothing found': 'No se encontró nada'}
+                        }
+                    }
+                },
+                /** Show a bar to filter options */
+                search: {
+                    type: Boolean,
+                    value: false
+                },
+                /** Dropdown values */
+                options: [],
+                /** Allow to select more than one option */
+                multi: {
+                    type: Boolean,
+                    value: false
+                },
+                /** Initial values */
+                selected: {
+                    type: Object,
+                    value: [],
+                    notify: true
+                },
+                /** Computed initial values */
+                _selected: {
+                    type: Array,
+                    value: [],
+                    computed: '_computeSelected(selected, options)'
+
+                },
+                /** Current paper-input value. It's the value shown by the element */
+                value: {
+                    type: String,
+                    notify: true
+                },
+                /** Label attribute for any object element in the object's array */
+                optionLabelAttr: String,
+                /** Value attribute for any object element in the object's array */
+                optionValueAttr: String
+            },
+
+            behaviors: [
+                Polymer.AppLocalizeBehavior
+            ],
+
+            /**
+             * Since this element considers single check case, as an specific case of multi select case where selection length
+             * is 1, we must include singles values inside of an array.
+             * @param selectedNewValue {String} Selected value
+             * @param options {Array} Possible accepted values
+             * @returns {*}
+             * @private
+             */
+            _computeSelected: function (selectedNewValue, options) {
+                //If the element is not an array (single select), transform it into an array
+                if (Object.prototype.toString.call(selectedNewValue) != '[object Array]') {
+                    var aux = [];
+                    //This prevents from include not allowed value
+                    if (this._getValueIndex(selectedNewValue, options) >= 0) aux.push(selectedNewValue);
+                    return aux;
+                }
+                return selectedNewValue;
+            },
+
+            /**
+             * Open/Close option's dropdown
+             * @param e
+             * @private
+             */
+            _toggleDropdown: function (e) {
+                this.$.dropdown.toggle();
+            },
+            /**
+             * Return the value for a given option
+             * @param option
+             * @returns {*}
+             * @private
+             */
+            _getOptionValue: function (option) {
+                if (this.optionValueAttr)
+                    return option[this.optionValueAttr];
+                else
+                    return option;
+            },
+            /**
+             * Return the label for a given option
+             * @param option
+             * @returns {*}
+             * @private
+             */
+            _getOptionLabel: function (option) {
+                if (this.optionLabelAttr)
+                    return option[this.optionLabelAttr];
+                else {
+                    return option;
+                }
+            },
+            /**
+             * Filter logic
+             * @param val
+             * @returns {Function}
+             * @private
+             */
+            _filterOptions: function (val) {
+                var self = this;
+
+                return function (option) {
+                    if (!val) return true;
+                    if (!option) return false;
+                    return (self._getOptionLabel(option) && ~self._getOptionLabel(option).toLowerCase().indexOf(val.toLowerCase()));
+                };
+            },
+            /**
+             *
+             * @private
+             */
+            _onSelect: function (e) {
+
+                var self = this;
+
+                this.value = this._selected.map(function (obj) {
+                    return self._getOptionLabel(self._getItemByValue(obj, this.options));
+                }.bind(this)).join(", ");
+
+                //Single check
+                this.selected = (this.multi) ? this._selected : this._selected[0];
+            },
+            _fireClick: function (e) {
+
+                //Single check
+                if (!this.multi) {
+                    //If it's not multi, override the _selected unique element
+                    if (this._selected.length > 1) {
+                        this.splice('_selected', 0, 1);
+                    }
+                    this.$.dropdown.close();
+                }
+
+                this.fire('option-click', {
+                    item: e.model.option
+                });
+            },
+            /**
+             *
+             * @private
+             */
+            _resetFilter: function () {
+                this.filter = '';
+            },
+
+            _getValueIndex: function (value, options) {
+                for (var i = 0; i < options.length; i++) {
+                    if (this._getOptionValue(options[i]) == value)
+                        return i
+                }
+                return -1;
+            },
+
+            _getItemByValue: function (value, options) {
+                var index = this._getValueIndex(value, options);
+                return (index > -1)
+                    ? options[index]
+                    : null;
+            }
+        });
+    </script>
+</dom-module>

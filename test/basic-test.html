@@ -1,0 +1,176 @@
+<!doctype html>
+
+<html>
+<head>
+    <title>paper-select test</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../paper-select.html">
+</head>
+<body>
+
+<test-fixture id="basic">
+    <template>
+        <paper-select></paper-select>
+    </template>
+</test-fixture>
+
+<script>
+    //Initializing
+    suite('Initializing', function () {
+
+        var app, dropdown, options,
+            selectedString, selectedMulti, selectedNumber;
+
+        setup(function () {
+            //Initializing the dropdown
+            app = fixture('basic');
+            dropdown = Polymer.dom(app.root).querySelector('paper-select');
+
+            options = ['option1', 'option2', 'option3', 'option4', 'option5', 1, 2, 3, 4, 5];
+            selectedNumber = 1;
+            selectedString = 'option';
+            selectedMulti = ['option3', 4];
+        });
+
+        test('shows nothing when options are not passed', function () {
+            var button,
+                dropdownMenuItems;
+
+            dropdown = Polymer.dom(app.root).querySelector('paper-select');
+
+            button = dropdown.querySelector('paper-button');
+
+            button.click();
+
+            dropdownMenuItems = dropdown.querySelectorAll('paper-menu paper-item');
+
+            assert.equal(dropdownMenuItems.length, 0);
+        });
+
+//        context('when options are passed', function () {
+//
+//            before(function(){
+//               dropdown.setAttribute('option', options);
+//            });
+//
+//            it('should show all the options in the dropdown', function () {
+//
+//            });
+//
+//            context('and a selected value is passed', function () {
+//
+//                before(function(){
+//
+//                });
+//
+//                it('should show the selected value highlighted in the dropdown', function () {
+//
+//                });
+//
+//                it('should show the selected value in the inner paper-input', function () {
+//
+//                });
+//
+//                it('should show nothing if the value is not part of the options Array', function () {
+//
+//                });
+//
+//                it('should show nothing in the inner paper-input if the options Array is empty', function () {
+//
+//                });
+//
+//                it('should not throw an error if the value is not part of the options Array', function () {
+//
+//                });
+//
+//                it('should not throw an error  if the options Array is empty', function () {
+//
+//                });
+//            })
+//        });
+
+    });
+//    //Clicking an option
+//    describe('Clicking an option,', function () {
+//        context('when multi property is true', function () {
+//
+//        });
+//    });
+//
+//    //Multi property
+//    describe('`multi` property,', function () {
+//        before(function () {
+//
+//        });
+//
+//        context('when is false', function () {
+//            it('should accept a String as a selected value', function () {
+//
+//            });
+//
+//            it('should accept a Number as a selected value', function () {
+//
+//            });
+//
+//            it('should not accept an Array as a selected value', function () {
+//
+//            })
+//        });
+//
+//        context('when is true', function () {
+//            it('should accept Arrays as a selected value', function () {
+//
+//            });
+//
+//            it('should accept a String as a selected value', function () {
+//
+//            });
+//
+//            it('should accept a Number as a selected value', function () {
+//
+//            });
+//        })
+//
+//    });
+//    //Search property
+//    describe('`search` property,', function () {
+//        context('when is false', function () {
+//            it('should not show the input search bar', function () {
+//
+//            })
+//        });
+//
+//        context('when is true', function () {
+//
+//            it('should show the input search bar', function () {
+//
+//            });
+//
+//            context('and a search term is introduce by the user', function () {
+//                it('should show only show elements which contain that value', function () {
+//
+//                });
+//
+//                it('should an error message if none of the options match the search term', function () {
+//
+//                });
+//
+//                context('and the user clicks the remove button', function () {
+//                    it('should show all the options elments', function () {
+//
+//                    });
+//                    it('should clean the search input', function () {
+//
+//                    });
+//                });
+//            });
+//        });
+//
+//    });
+</script>
+</body>
+</html>

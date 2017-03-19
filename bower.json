@@ -1,0 +1,27 @@
+{
+  "name": "paper-select",
+  "main": "paper-select.html",
+  "description": "Element to show a multi-select dropdown",
+  "version": "0.1.8",
+  "repository": {
+    "type": "git",
+    "url": "git://gitlab.hola.com/polymer/paper-select.git"
+  },
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.4.0",
+    "iron-dropdown": "^v1.5.2",
+    "paper-button": "^v1.0.13",
+    "iron-icon": "^v1.0.10",
+    "app-localize-behavior": "^v0.10.1",
+    "paper-menu": "^v1.2.2",
+    "paper-item": "^v1.2.1",
+    "paper-input": "^v1.1.18"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
+    "web-component-tester": "^4.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0",
+    "iron-form": "^v1.1.4"
+  }
+}
